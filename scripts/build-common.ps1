@@ -142,6 +142,32 @@ function Ensure-NodeLts {
   Write-Host "Node $(& node --version) | npm $(& npm.cmd --version) | Windows x64"
 }
 
+function Invoke-Soft {
+  # Runs a command, streams its output, and returns the exit code instead of throwing.
+  param([string]$FilePath, [string[]]$ArgumentList=@())
+  $displayArgs = @($ArgumentList | ForEach-Object { Format-CommandArgument ([string]$_) }) -join ' '
+  $script:BuildCommand = "$FilePath $displayArgs".Trim()
+  Write-Host "> $script:BuildCommand" -ForegroundColor DarkGray
+  $oldPreference = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    & $FilePath @ArgumentList 2>&1 | Tee-Object -Variable commandOutput | ForEach-Object { Write-Host $_ }
+    $exitCode = $LASTEXITCODE
+  } finally { $ErrorActionPreference = $oldPreference }
+  $script:BuildLog = (@($commandOutput) | Out-String).Trim()
+  return $exitCode
+}
+
+function Get-PackageVersion {
+  param([string]$Name)
+  $json = Get-Content -LiteralPath (Join-Path (Get-Location) 'package.json') -Raw | ConvertFrom-Json
+  foreach ($section in @('optionalDependencies','devDependencies','dependencies')) {
+    $bag = $json.$section
+    if ($bag -and $bag.PSObject.Properties.Name -contains $Name) { return ([string]$bag.$Name).TrimStart('^','~') }
+  }
+  return ''
+}
+
 function Test-NativeBindings {
   & node -e "require('lightningcss');require('@tailwindcss/oxide');console.log('NATIVE OK')" 2>&1 | ForEach-Object { Write-Host $_ }
   if ($LASTEXITCODE -ne 0) { return $false }
@@ -149,22 +175,64 @@ function Test-NativeBindings {
   return ($LASTEXITCODE -eq 0)
 }
 
+function Repair-NativeBindings {
+  # Installs the exact Windows x64 binaries the locked versions require.
+  $lightning = Get-PackageVersion 'lightningcss-win32-x64-msvc'
+  $oxide = Get-PackageVersion '@tailwindcss/oxide-win32-x64-msvc'
+  if (-not $lightning) { $lightning = Get-PackageVersion 'lightningcss' }
+  if (-not $oxide) { $oxide = Get-PackageVersion '@tailwindcss/oxide' }
+  Write-Host "Repairing Windows x64 native bindings (lightningcss $lightning / oxide $oxide)..."
+  Invoke-Soft 'npm.cmd' @('install','--no-save','--include=optional','--force','--no-audit','--no-fund','--no-progress',"lightningcss-win32-x64-msvc@$lightning","@tailwindcss/oxide-win32-x64-msvc@$oxide") | Out-Null
+}
+
 function Install-NodeDependencies {
   Ensure-NodeLts
-  if (-not (Test-Path 'package-lock.json')) { throw 'package-lock.json is required for a reproducible build.' }
-  $npmArgs = @('ci','--include=optional','--foreground-scripts','--no-audit','--no-fund','--no-progress')
-  $script:RepairSummary = 'Clean npm ci from the committed lockfile'
-  Invoke-Checked 'npm.cmd' $npmArgs 'Atomic dependency installation failed'
-  Write-Host 'Verifying native bindings and locked dependency tree...'
-  if (-not (Test-NativeBindings)) {
-    $script:RepairSummary = 'Native health check failed; one automatic clean npm ci retry was attempted'
-    Write-Warning 'Native binding health check failed. Rebuilding node_modules once from package-lock.json...'
-    Remove-Item 'node_modules' -Recurse -Force -ErrorAction SilentlyContinue
-    Invoke-Checked 'npm.cmd' $npmArgs 'Automatic native dependency repair failed'
-    if (-not (Test-NativeBindings)) { throw 'Native bindings are still unavailable after a clean lockfile restore.' }
+  # The public npm registry is enforced so a lockfile produced on another
+  # machine/registry can never break an end-user build.
+  $env:npm_config_registry = 'https://registry.npmjs.org/'
+  $env:npm_config_include = 'optional'
+
+  $lockUsable = $false
+  if (Test-Path 'package-lock.json') {
+    $lockUsable = ((Invoke-Soft 'node' @('scripts\verify-lockfile.mjs')) -eq 0)
   }
-  Invoke-Checked 'npm.cmd' @('ls','lightningcss','lightningcss-win32-x64-msvc','@tailwindcss/oxide','@tailwindcss/oxide-win32-x64-msvc','--depth=2') 'Native dependency tree validation failed'
-  $script:RepairSummary = 'Native health check passed from package-lock.json'
+  if (-not $lockUsable) {
+    Write-Warning 'The lockfile is missing or not reproducible on this machine. Regenerating it from package.json...'
+    $script:RepairSummary = 'Lockfile regenerated from package.json against registry.npmjs.org'
+    Remove-Item 'package-lock.json' -Force -ErrorAction SilentlyContinue
+    Invoke-Checked 'npm.cmd' @('install','--package-lock-only','--include=optional','--no-audit','--no-fund','--no-progress') 'Lockfile generation failed'
+  } else {
+    $script:RepairSummary = 'Clean npm ci from the committed lockfile'
+  }
+
+  # One atomic install. Nothing later in the build touches node_modules again.
+  $npmCi = @('ci','--include=optional','--foreground-scripts','--no-audit','--no-fund','--no-progress')
+  if ((Invoke-Soft 'npm.cmd' $npmCi) -ne 0) {
+    Write-Warning 'npm ci failed. Rebuilding node_modules from scratch...'
+    $script:RepairSummary = 'npm ci failed; full clean reinstall was performed automatically'
+    Remove-Item 'node_modules' -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item 'package-lock.json' -Force -ErrorAction SilentlyContinue
+    Invoke-Checked 'npm.cmd' @('install','--include=optional','--foreground-scripts','--no-audit','--no-fund','--no-progress') 'Atomic dependency installation failed'
+  }
+
+  Write-Host 'Health check: native bindings for Windows x64...'
+  if (-not (Test-NativeBindings)) {
+    Write-Warning 'Native binding health check failed. Installing the missing Windows x64 binaries...'
+    $script:RepairSummary = 'Windows x64 native binaries were repaired automatically'
+    Repair-NativeBindings
+    if (-not (Test-NativeBindings)) {
+      Write-Warning 'Still failing. Performing a full clean reinstall as the last automatic step...'
+      $script:RepairSummary = 'Full clean reinstall plus native binary repair'
+      Remove-Item 'node_modules' -Recurse -Force -ErrorAction SilentlyContinue
+      Invoke-Checked 'npm.cmd' @('install','--include=optional','--foreground-scripts','--no-audit','--no-fund','--no-progress') 'Automatic native dependency repair failed'
+      Repair-NativeBindings
+      if (-not (Test-NativeBindings)) {
+        throw 'Native bindings (lightningcss / @tailwindcss/oxide) are unavailable for Windows x64 after every automatic repair. Check the internet connection or antivirus blocking .node files, then rerun this script.'
+      }
+    }
+  }
+  Invoke-Soft 'npm.cmd' @('ls','lightningcss','lightningcss-win32-x64-msvc','@tailwindcss/oxide','@tailwindcss/oxide-win32-x64-msvc','--depth=2') | Out-Null
+  Write-Ok 'NATIVE OK - dependency tree is reproducible.'
 }
 
 function Enter-AsciiBuildWorkspace {
