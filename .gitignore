@@ -15,6 +15,12 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+electron-release/
+installer/
+android/.gradle/
+android/app/build/
+release.keystore
+.ums-build/
 
 # Wrangler / Cloudflare
 .wrangler/
@@ -30,3 +36,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.buildtmp/

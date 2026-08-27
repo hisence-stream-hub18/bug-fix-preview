@@ -10,33 +10,180 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AddRouteImport } from './routes/add'
+import { Route as ChannelsRouteImport } from './routes/channels'
+import { Route as DevicesRouteImport } from './routes/devices'
+import { Route as DownloadRouteImport } from './routes/download'
+import { Route as ExtensionRouteImport } from './routes/extension'
+import { Route as LibraryRouteImport } from './routes/library'
+import { Route as PlaylistRouteImport } from './routes/playlist'
+import { Route as PluginsRouteImport } from './routes/plugins'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as StatusRouteImport } from './routes/status'
+import { Route as StreamsRouteImport } from './routes/streams'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AddRoute = AddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChannelsRoute = ChannelsRouteImport.update({
+  id: '/channels',
+  path: '/channels',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevicesRoute = DevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DownloadRoute = DownloadRouteImport.update({
+  id: '/download',
+  path: '/download',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExtensionRoute = ExtensionRouteImport.update({
+  id: '/extension',
+  path: '/extension',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaylistRoute = PlaylistRouteImport.update({
+  id: '/playlist',
+  path: '/playlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PluginsRoute = PluginsRouteImport.update({
+  id: '/plugins',
+  path: '/plugins',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StreamsRoute = StreamsRouteImport.update({
+  id: '/streams',
+  path: '/streams',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/add': typeof AddRoute
+  '/channels': typeof ChannelsRoute
+  '/devices': typeof DevicesRoute
+  '/download': typeof DownloadRoute
+  '/extension': typeof ExtensionRoute
+  '/library': typeof LibraryRoute
+  '/playlist': typeof PlaylistRoute
+  '/plugins': typeof PluginsRoute
+  '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
+  '/streams': typeof StreamsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/add': typeof AddRoute
+  '/channels': typeof ChannelsRoute
+  '/devices': typeof DevicesRoute
+  '/download': typeof DownloadRoute
+  '/extension': typeof ExtensionRoute
+  '/library': typeof LibraryRoute
+  '/playlist': typeof PlaylistRoute
+  '/plugins': typeof PluginsRoute
+  '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
+  '/streams': typeof StreamsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/add': typeof AddRoute
+  '/channels': typeof ChannelsRoute
+  '/devices': typeof DevicesRoute
+  '/download': typeof DownloadRoute
+  '/extension': typeof ExtensionRoute
+  '/library': typeof LibraryRoute
+  '/playlist': typeof PlaylistRoute
+  '/plugins': typeof PluginsRoute
+  '/settings': typeof SettingsRoute
+  '/status': typeof StatusRoute
+  '/streams': typeof StreamsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/add'
+    | '/channels'
+    | '/devices'
+    | '/download'
+    | '/extension'
+    | '/library'
+    | '/playlist'
+    | '/plugins'
+    | '/settings'
+    | '/status'
+    | '/streams'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/add'
+    | '/channels'
+    | '/devices'
+    | '/download'
+    | '/extension'
+    | '/library'
+    | '/playlist'
+    | '/plugins'
+    | '/settings'
+    | '/status'
+    | '/streams'
+  id:
+    | '__root__'
+    | '/'
+    | '/add'
+    | '/channels'
+    | '/devices'
+    | '/download'
+    | '/extension'
+    | '/library'
+    | '/playlist'
+    | '/plugins'
+    | '/settings'
+    | '/status'
+    | '/streams'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AddRoute: typeof AddRoute
+  ChannelsRoute: typeof ChannelsRoute
+  DevicesRoute: typeof DevicesRoute
+  DownloadRoute: typeof DownloadRoute
+  ExtensionRoute: typeof ExtensionRoute
+  LibraryRoute: typeof LibraryRoute
+  PlaylistRoute: typeof PlaylistRoute
+  PluginsRoute: typeof PluginsRoute
+  SettingsRoute: typeof SettingsRoute
+  StatusRoute: typeof StatusRoute
+  StreamsRoute: typeof StreamsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +195,99 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/add': {
+      id: '/add'
+      path: '/add'
+      fullPath: '/add'
+      preLoaderRoute: typeof AddRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/channels': {
+      id: '/channels'
+      path: '/channels'
+      fullPath: '/channels'
+      preLoaderRoute: typeof ChannelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devices': {
+      id: '/devices'
+      path: '/devices'
+      fullPath: '/devices'
+      preLoaderRoute: typeof DevicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/download': {
+      id: '/download'
+      path: '/download'
+      fullPath: '/download'
+      preLoaderRoute: typeof DownloadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/extension': {
+      id: '/extension'
+      path: '/extension'
+      fullPath: '/extension'
+      preLoaderRoute: typeof ExtensionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playlist': {
+      id: '/playlist'
+      path: '/playlist'
+      fullPath: '/playlist'
+      preLoaderRoute: typeof PlaylistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plugins': {
+      id: '/plugins'
+      path: '/plugins'
+      fullPath: '/plugins'
+      preLoaderRoute: typeof PluginsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/streams': {
+      id: '/streams'
+      path: '/streams'
+      fullPath: '/streams'
+      preLoaderRoute: typeof StreamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AddRoute: AddRoute,
+  ChannelsRoute: ChannelsRoute,
+  DevicesRoute: DevicesRoute,
+  DownloadRoute: DownloadRoute,
+  ExtensionRoute: ExtensionRoute,
+  LibraryRoute: LibraryRoute,
+  PlaylistRoute: PlaylistRoute,
+  PluginsRoute: PluginsRoute,
+  SettingsRoute: SettingsRoute,
+  StatusRoute: StatusRoute,
+  StreamsRoute: StreamsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
