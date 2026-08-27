@@ -62,7 +62,7 @@ function Write-BuildFailure {
     Write-Host "`nError output:" -ForegroundColor Red
     Write-Host $script:BuildLog
   }
-  Write-Host "`nThe build stopped safely. No manual npm install is required; rerun this script after resolving the reported network/system error." -ForegroundColor Yellow
+  Write-Host "`nThe build stopped safely. No manual npm install is required; resolve the reported error and rerun this script." -ForegroundColor Yellow
 }
 
 function Invoke-Download {
@@ -138,7 +138,8 @@ function Ensure-NodeLts {
   if ($major -lt 20 -or $major -ge 25) { throw "Unsupported Node.js version: $(& node --version). Install could not select Node 20-24." }
   if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) { throw 'npm is missing from the Node.js installation.' }
   Get-WindowsArch | Out-Null
-  $env:npm_config_yes='true'; $env:npm_config_audit='false'; $env:npm_config_fund='false'; $env:npm_config_progress='false'; $env:npm_config_optional='true'
+  $env:npm_config_yes='true'; $env:npm_config_audit='false'; $env:npm_config_fund='false'; $env:npm_config_progress='false'
+  Remove-Item Env:npm_config_optional -ErrorAction SilentlyContinue
   Write-Host "Node $(& node --version) | npm $(& npm.cmd --version) | Windows x64"
 }
 
