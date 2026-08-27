@@ -72,18 +72,18 @@ Name: "{group}\سنجش سرعت وابستگی‌ها"; Filename: "powershell.e
 
 [Run]
 ; پیش‌نیاز صدا: بدون آن اشتراک صفحه فقط تصویر دارد
-Filename: "{tmp}\Setup.Screen.Capturer.Recorder.exe"; Parameters: "/S"; Flags: runhidden skipifdoesntexist; Tasks: virtualaudio; StatusMsg: "نصب درایور صدای مجازی…"; RunOnceId: "InstallVirtualAudio"
+Filename: "{tmp}\Setup.Screen.Capturer.Recorder.exe"; Parameters: "/S"; Flags: runhidden skipifdoesntexist; Tasks: virtualaudio; StatusMsg: "نصب درایور صدای مجازی…"
 ; --- قوانین فایروال: بدون این‌ها تلویزیون سرور را نمی‌بیند ---
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Universal Media Server"""; Flags: runhidden; StatusMsg: "پیکربندی فایروال ویندوز…"; RunOnceId: "ResetFirewallApp"
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Universal Media Server"" dir=in action=allow program=""{app}\{#AppExe}"" enable=yes profile=any"; Flags: runhidden; StatusMsg: "پیکربندی فایروال ویندوز…"; RunOnceId: "AddFirewallApp"
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""Universal Media Server"""; Flags: runhidden; StatusMsg: "پیکربندی فایروال ویندوز…"
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""Universal Media Server"" dir=in action=allow program=""{app}\{#AppExe}"" enable=yes profile=any"; Flags: runhidden; StatusMsg: "پیکربندی فایروال ویندوز…"
 ; ffmpeg هم مستقیم استریم می‌فرستد؛ بدون اجازه، تلویزیون تصویر سیاه می‌گیرد
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""UMS ffmpeg"""; Flags: runhidden; RunOnceId: "ResetFirewallFfmpeg"
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""UMS ffmpeg"" dir=in action=allow program=""{app}\resources\ffmpeg.exe"" enable=yes profile=any"; Flags: runhidden; RunOnceId: "AddFirewallFfmpeg"
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""UMS ffmpeg"""; Flags: runhidden
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""UMS ffmpeg"" dir=in action=allow program=""{app}\resources\ffmpeg.exe"" enable=yes profile=any"; Flags: runhidden
 ; پورت HTTP سرور رسانه (پیش‌فرض 5001)
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""UMS HTTP {#MediaPort}"""; Flags: runhidden; RunOnceId: "ResetFirewallHttp"
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""UMS HTTP {#MediaPort}"" dir=in action=allow protocol=TCP localport={#MediaPort} enable=yes profile=any"; Flags: runhidden; RunOnceId: "AddFirewallHttp"
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""UMS HTTP {#MediaPort}"""; Flags: runhidden
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""UMS HTTP {#MediaPort}"" dir=in action=allow protocol=TCP localport={#MediaPort} enable=yes profile=any"; Flags: runhidden
 ; کشف SSDP / UPnP روی UDP 1900
-Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""UMS SSDP 1900"""; Flags: runhidden; RunOnceId: "ResetFirewallSsdp"
+Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=""UMS SSDP 1900"""; Flags: runhidden
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall add rule name=""UMS SSDP 1900"" dir=in action=allow protocol=UDP localport=1900 enable=yes profile=any"; Flags: runhidden
 
 Filename: "{app}\{#AppExe}"; Description: "اجرای برنامه"; Flags: nowait postinstall skipifsilent
