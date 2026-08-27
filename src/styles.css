@@ -217,3 +217,63 @@
 .perf-low video {
   image-rendering: auto;
 }
+
+/* --------------------------------------------------------- web-like inputs
+ * Every clickable element shows the hand cursor and reacts instantly to a
+ * tap/click, exactly like a web page: no 300ms delay, no text selection flash
+ * and an immediate pressed state.
+ */
+button,
+a[href],
+label[for],
+summary,
+select,
+[role="button"],
+[role="tab"],
+[role="link"],
+[role="menuitem"],
+[role="menuitemcheckbox"],
+[role="menuitemradio"],
+[role="option"],
+[role="switch"],
+[role="checkbox"],
+[role="radio"],
+[data-slot="button"],
+.cursor-pointer {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+button:disabled,
+[aria-disabled="true"],
+[data-disabled],
+[disabled] {
+  cursor: not-allowed;
+}
+
+button:active:not(:disabled),
+a[href]:active,
+[role="button"]:active:not([aria-disabled="true"]),
+[role="tab"]:active,
+[data-slot="button"]:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  cursor: text;
+  user-select: text;
+}
+
+/* Sliders / drag handles keep their own affordance. */
+input[type="range"],
+[role="slider"] {
+  cursor: grab;
+}
+input[type="range"]:active,
+[role="slider"]:active {
+  cursor: grabbing;
+}
