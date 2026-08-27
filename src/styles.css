@@ -62,40 +62,60 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --radius: 0.9rem;
+  --background: oklch(0.14 0.045 258);
+  --foreground: oklch(0.95 0.012 250);
+  --card: oklch(0.19 0.06 258);
+  --card-foreground: oklch(0.95 0.012 250);
+  --popover: oklch(0.19 0.06 258);
+  --popover-foreground: oklch(0.95 0.012 250);
+  --primary: oklch(0.8 0.15 82);
+  --primary-foreground: oklch(0.16 0.05 258);
+  --secondary: oklch(0.26 0.07 258);
+  --secondary-foreground: oklch(0.95 0.012 250);
+  --muted: oklch(0.26 0.07 258);
+  --muted-foreground: oklch(0.75 0.05 250);
+  --accent: oklch(0.3 0.09 258);
+  --accent-foreground: oklch(0.88 0.13 82);
+  --destructive: oklch(0.62 0.2 25);
+  --destructive-foreground: oklch(0.97 0.01 250);
+  --border: oklch(0.45 0.11 82 / 45%);
+  --input: oklch(0.45 0.11 82 / 45%);
+  --ring: oklch(0.8 0.15 82);
+  --chart-1: oklch(0.8 0.15 82);
+  --chart-2: oklch(0.7 0.15 220);
+  --chart-3: oklch(0.75 0.16 145);
+  --chart-4: oklch(0.65 0.18 30);
+  --chart-5: oklch(0.68 0.13 265);
+  --sidebar: oklch(0.17 0.055 258);
+  --sidebar-foreground: oklch(0.95 0.012 250);
+  --sidebar-primary: oklch(0.8 0.15 82);
+  --sidebar-primary-foreground: oklch(0.16 0.05 258);
+  --sidebar-accent: oklch(0.26 0.07 258);
+  --sidebar-accent-foreground: oklch(0.88 0.13 82);
+  --sidebar-border: oklch(0.45 0.11 82 / 45%);
+  --sidebar-ring: oklch(0.8 0.15 82);
+  --font-sans: "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
+  --glow-gold: 0 0 18px oklch(0.8 0.15 82 / 25%);
+  --glow-blue: 0 0 40px oklch(0.55 0.16 250 / 35%);
+  --gradient-panel: linear-gradient(
+    150deg,
+    oklch(0.22 0.075 255) 0%,
+    oklch(0.16 0.05 258) 60%,
+    oklch(0.14 0.045 258) 100%
+  );
 }
+
+@utility panel-glow {
+  background-image: var(--gradient-panel);
+  box-shadow: var(--glow-gold), inset 0 0 30px oklch(0.4 0.12 250 / 25%);
+}
+
+@utility text-glow {
+  text-shadow: 0 0 14px oklch(0.8 0.15 82 / 45%);
+}
+
+
 
 .dark {
   --background: oklch(0.129 0.042 264.695);
@@ -139,6 +159,61 @@
 
   body {
     background-color: var(--color-background);
+    background-image:
+      radial-gradient(circle at 15% 0%, oklch(0.4 0.14 250 / 35%), transparent 55%),
+      radial-gradient(circle at 90% 100%, oklch(0.35 0.12 258 / 30%), transparent 55%);
+    background-attachment: fixed;
     color: var(--color-foreground);
   }
+}
+
+
+/* ---- Startup splash animations ---- */
+@keyframes splash-zoom {
+  0% { transform: scale(0.55) rotate(-8deg); opacity: 0; filter: blur(14px); }
+  45% { transform: scale(1.06) rotate(0deg); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+@keyframes splash-rise {
+  0%, 25% { transform: translateY(24px); opacity: 0; letter-spacing: 0.4em; }
+  100% { transform: translateY(0); opacity: 1; letter-spacing: 0.08em; }
+}
+@keyframes splash-pan {
+  0% { transform: scale(1.15); }
+  100% { transform: scale(1.28); }
+}
+@keyframes splash-fill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.splash-logo { animation: splash-zoom 1.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.splash-title { animation: splash-rise 1.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.splash-bg { animation: splash-pan 5s ease-out both; }
+.splash-bar-fill { animation: splash-fill 4.6s linear both; }
+
+/* ------------------------------------------------------------------ perf
+ * Lightweight profile (added by src/lib/perf.ts on weak PCs/phones/TVs):
+ * removes the GPU-heavy effects that cause dropped frames and A/V drift.
+ */
+.perf-low *,
+.perf-low *::before,
+.perf-low *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+.perf-low .backdrop-blur,
+.perf-low [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+}
+
+.perf-low [class*="shadow-"] {
+  box-shadow: none !important;
+}
+
+.perf-low img,
+.perf-low video {
+  image-rendering: auto;
 }

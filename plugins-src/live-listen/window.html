@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>شنود صدا و ترجمه فارسی</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1020;
+        --card: #141a30;
+        --border: #26304f;
+        --primary: #4f8cff;
+        --text: #e8ecf7;
+        --muted: #9aa4c0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 14px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Tahoma, "Segoe UI", sans-serif;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 100vh;
+      }
+      .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      button, select {
+        background: var(--card);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 7px 12px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      button.primary { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 700; }
+      button:disabled { opacity: .55; cursor: default; }
+      .box {
+        flex: 1;
+        min-height: 70px;
+        overflow: auto;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 15px;
+        line-height: 1.9;
+        white-space: pre-wrap;
+      }
+      .label { font-size: 11px; color: var(--muted); }
+      .status { font-size: 11px; color: var(--muted); min-height: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <button id="toggle" class="primary">شروع شنود</button>
+      <select id="src">
+        <option value="auto">زبان مبدأ: خودکار</option>
+        <option value="en-US">انگلیسی</option>
+        <option value="ar-SA">عربی</option>
+        <option value="tr-TR">ترکی</option>
+        <option value="fr-FR">فرانسوی</option>
+        <option value="de-DE">آلمانی</option>
+        <option value="es-ES">اسپانیایی</option>
+        <option value="ru-RU">روسی</option>
+        <option value="hi-IN">هندی</option>
+        <option value="fa-IR">فارسی</option>
+      </select>
+      <button id="clear">پاک‌کردن</button>
+    </div>
+
+    <div class="label">متن شنیده‌شده</div>
+    <div class="box" id="heard" dir="auto"></div>
+
+    <div class="label">ترجمه فارسی</div>
+    <div class="box" id="fa"></div>
+
+    <div class="status" id="status">آماده. روی «شروع شنود» بزنید.</div>
+
+    <script>
+      const heard = document.getElementById("heard");
+      const fa = document.getElementById("fa");
+      const statusEl = document.getElementById("status");
+      const toggle = document.getElementById("toggle");
+      const srcSel = document.getElementById("src");
+      const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let rec = null;
+      let running = false;
+
+      function setStatus(t) { statusEl.textContent = t; }
+
+      async function translate(text) {
+        const url =
+          "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=fa&dt=t&q=" +
+          encodeURIComponent(text);
+        const res = await fetch(url);
+        const data = await res.json();
+        return (data[0] || []).map((p) => p[0]).join("");
+      }
+
+      function append(el, text) {
+        el.textContent += (el.textContent ? "\n" : "") + text;
+        el.scrollTop = el.scrollHeight;
+      }
+
+      function start() {
+        if (!Ctor) { setStatus("تشخیص گفتار در این نسخه پشتیبانی نمی‌شود."); return; }
+        rec = new Ctor();
+        rec.lang = srcSel.value === "auto" ? navigator.language || "en-US" : srcSel.value;
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.onresult = (e) => {
+          for (let i = e.resultIndex; i < e.results.length; i += 1) {
+            const r = e.results[i];
+            const text = (r[0] && r[0].transcript || "").trim();
+            if (!text) continue;
+            if (!r.isFinal) { setStatus("… " + text); continue; }
+            append(heard, text);
+            setStatus("در حال ترجمه…");
+            translate(text)
+              .then((t) => { append(fa, t || text); setStatus("در حال شنیدن…"); })
+              .catch(() => { append(fa, "(ترجمه ناموفق) " + text); setStatus("اینترنت در دسترس نیست."); });
+          }
+        };
+        rec.onerror = (e) => {
+          if (e && e.error === "not-allowed") setStatus("دسترسی به میکروفون داده نشد.");
+          else setStatus("خطا: " + (e && e.error ? e.error : "نامشخص"));
+        };
+        rec.onend = () => { if (running) { try { rec.start(); } catch {} } };
+        running = true;
+        try { rec.start(); } catch {}
+        toggle.textContent = "توقف شنود";
+        setStatus("در حال شنیدن…");
+      }
+
+      function stop() {
+        running = false;
+        try { rec && rec.abort(); } catch {}
+        rec = null;
+        toggle.textContent = "شروع شنود";
+        setStatus("متوقف شد.");
+      }
+
+      toggle.addEventListener("click", () => (running ? stop() : start()));
+      document.getElementById("clear").addEventListener("click", () => {
+        heard.textContent = ""; fa.textContent = ""; setStatus("پاک شد.");
+      });
+    </script>
+  </body>
+</html>

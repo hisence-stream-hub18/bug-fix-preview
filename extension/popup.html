@@ -1,0 +1,47 @@
+<!doctype html>
+<html dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        width: 250px;
+        margin: 0;
+        padding: 12px;
+        background: #0d1530;
+        color: #e9edff;
+        font: 12px Tahoma, sans-serif;
+      }
+      strong { color: #f3c969; }
+      input {
+        width: 100%;
+        margin-top: 8px;
+        padding: 6px;
+        border-radius: 8px;
+        border: 1px solid #f3c96955;
+        background: #1b2650;
+        color: #e9edff;
+      }
+      button {
+        width: 100%;
+        margin-top: 8px;
+        padding: 7px;
+        border: 0;
+        border-radius: 8px;
+        background: #f3c969;
+        color: #0d1530;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      p { color: #aab3d6; line-height: 1.6; }
+    </style>
+  </head>
+  <body>
+    <strong>Universal Media Server</strong>
+    <p>پورت برنامه دسکتاپ:</p>
+    <input id="port" type="number" value="5001" />
+    <button id="save">ذخیره</button>
+    <button id="send">ارسال لینک این صفحه</button>
+    <p id="msg"></p>
+    <script src="popup.js"></script>
+  </body>
+</html>
