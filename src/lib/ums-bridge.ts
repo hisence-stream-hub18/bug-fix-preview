@@ -175,6 +175,22 @@ export type BackendDownload = {
   createdAt: number;
 };
 
+export type ScreenMetrics = {
+  running: boolean;
+  viewers: number;
+  kbps: number;
+  targetKbps: number;
+  targetFps: number;
+  /** 0..100 — how well the encoder keeps up with the desktop. */
+  capture: number;
+  /** 0..100 — how close the TV picture is to the desktop. */
+  delivery: number;
+  delayMs: number;
+  bufferMs: number;
+  tier?: string;
+  hw?: string;
+};
+
 export type UmsApi = {
   isDesktop: true;
   platform: string;
@@ -233,6 +249,15 @@ export type UmsApi = {
     toggle?: boolean;
     text?: string;
   }): Promise<{ ok: boolean; visible: boolean; text: string }>;
+  /** Desktop only: live capture/delivery numbers for the sync panel. */
+  screenMetrics?(): Promise<ScreenMetrics>;
+  /** Desktop only: changes fps/bitrate/buffer while the share keeps running. */
+  screenTune?(p: {
+    fps?: number;
+    kbps?: number;
+    gop?: number;
+    bufferMs?: number;
+  }): Promise<{ ok: boolean; error?: string; tuning?: Record<string, number> }>;
   /** Desktop only: mutes/unmutes the computer speakers. */
   screenMuteLocal?(on: boolean): Promise<{ ok: boolean; muted?: boolean }>;
   /** Desktop only: sends a keystroke/media key to the focused desktop window. */

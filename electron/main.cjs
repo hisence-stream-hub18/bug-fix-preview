@@ -455,6 +455,9 @@ function registerIpc() {
 
   // ---- desktop screen mirroring to the TV
   ipcMain.handle("ums:screenStatus", () => screen.status());
+  // Live sync tuning for the floating desktop panel (no restart of the share).
+  ipcMain.handle("ums:screenMetrics", () => screen.metrics());
+  ipcMain.handle("ums:screenTune", (_e, p) => screen.retune(p || {}));
   // On-TV control panel + local speaker mute during desktop sharing
   ipcMain.handle("ums:screenPanel", (_e, p) => screen.setPanel(p || {}));
   // Floating desktop panel: real keystrokes to whatever plays on the shared screen

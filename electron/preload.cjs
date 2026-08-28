@@ -57,6 +57,8 @@ contextBridge.exposeInMainWorld("ums", {
   stopScreenShare: (payload) => invoke("ums:stopScreenShare", payload),
   screenStatus: () => invoke("ums:screenStatus"),
   screenPanel: (payload) => invoke("ums:screenPanel", payload),
+  screenMetrics: () => invoke("ums:screenMetrics"),
+  screenTune: (payload) => invoke("ums:screenTune", payload),
   screenMuteLocal: (on) => invoke("ums:screenMuteLocal", on),
   hostKey: (payload) => invoke("ums:hostKey", payload),
   setLinkCatcher: (on) => invoke("ums:setLinkCatcher", on),
