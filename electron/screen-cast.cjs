@@ -23,7 +23,7 @@ const PRIMING_BYTES = 180_000; // TS bytes replayed to a freshly attached TV (de
 //   lightPanel drawtext is re-read once per second instead of every frame
 // A zero value means "let the automatic hardware profile decide".
 // ---------------------------------------------------------------------------
-const tuning = { fps: 0, kbps: 0, gop: 0, segmentMs: 1000, lightPanel: false };
+const tuning = { fps: 0, kbps: 0, gop: 0, segmentMs: 1000, lightPanel: false, bufferMs: 700 };
 
 function setTuning(next = {}) {
   const num = (v, min, max) => {
@@ -35,6 +35,12 @@ function setTuning(next = {}) {
   if ("gop" in next) tuning.gop = num(next.gop, 4, 120);
   if ("segmentMs" in next) tuning.segmentMs = num(next.segmentMs, 300, 4000) || 1000;
   if ("lightPanel" in next) tuning.lightPanel = Boolean(next.lightPanel);
+  // Manual sync slider: how much already-muxed video a freshly attached TV
+  // replays before it goes live. Lower = the TV is closer to the desktop.
+  if ("bufferMs" in next) {
+    const n = Math.round(Number(next.bufferMs) || 0);
+    tuning.bufferMs = Math.max(120, Math.min(6000, n || 700));
+  }
   return { ...tuning };
 }
 
@@ -44,7 +50,8 @@ function getTuning() {
 
 /** Prime buffer scaled to the chosen segment length (short chunk = low delay). */
 function primingBytes() {
-  return Math.max(60_000, Math.round((PRIMING_BYTES * tuning.segmentMs) / 1000));
+  const ms = tuning.bufferMs || tuning.segmentMs || 1000;
+  return Math.max(24_000, Math.round((PRIMING_BYTES * ms) / 1000));
 }
 
 // Live control panel burned into the picture (drawtext reloads this file every
@@ -66,6 +73,8 @@ const state = {
   options: {},
   buffer: [], // rolling MPEG-TS prime buffer
   bufferBytes: 0,
+  samples: [], // [{ t, bytes }] rolling throughput window for the sync panel
+  restarting: false,
   bytesOut: 0,
   panel: { visible: false, text: "" },
   muted: false,
@@ -778,6 +787,9 @@ function launch(options = {}) {
 
   proc.stdout.on("data", (chunk) => {
     state.bytesOut += chunk.length;
+    const now = Date.now();
+    state.samples.push({ t: now, bytes: chunk.length });
+    while (state.samples.length && now - state.samples[0].t > 4000) state.samples.shift();
     // Keep a small rolling buffer so a TV that connects later starts instantly.
     state.buffer.push(chunk);
     state.bufferBytes += chunk.length;
@@ -816,6 +828,9 @@ function launch(options = {}) {
   });
   proc.on("exit", () => {
     if (state.proc === proc) state.proc = null;
+    // During a live re-tune the same TV connection keeps playing the new
+    // ffmpeg output, so viewers must NOT be disconnected.
+    if (state.restarting) return;
     for (const res of state.clients) {
       try {
         res.end();
@@ -1021,8 +1036,75 @@ function selfTest() {
   }
 }
 
+/**
+ * Applies new tuning values to a running capture without dropping the TV.
+ * The HTTP responses stay attached, ffmpeg is replaced underneath them.
+ */
+function retune(next = {}) {
+  setTuning(next);
+  if (!state.proc) return { ok: true, running: false, tuning: getTuning() };
+  const opts = { ...(state.options || {}) };
+  if (next.fps) opts.fps = tuning.fps;
+  if (next.kbps) opts.kbps = tuning.kbps;
+  if (next.gop) opts.gop = tuning.gop;
+  const proc = state.proc;
+  state.restarting = true;
+  state.proc = null;
+  try {
+    proc.kill("SIGKILL");
+  } catch {
+    /* ignore */
+  }
+  state.buffer = [];
+  state.bufferBytes = 0;
+  const res = launch(opts);
+  state.restarting = false;
+  if (res.ok) state.options = opts;
+  return { ...res, tuning: getTuning() };
+}
+
+/**
+ * Live numbers for the floating sync panel: how fast the desktop is captured
+ * versus how fast bytes actually reach the TV, plus the estimated delay the
+ * current buffer settings add.
+ */
+function metrics() {
+  const now = Date.now();
+  const win = state.samples.filter((s) => now - s.t <= 3000);
+  const bytes = win.reduce((a, b) => a + b.bytes, 0);
+  const spanMs = win.length > 1 ? Math.max(500, win[win.length - 1].t - win[0].t) : 1000;
+  const kbps = Math.round((bytes * 8) / spanMs); // bytes/ms*8 = kbit/s
+  const t = getTuning();
+  const profile = machineProfile();
+  const targetKbps = t.kbps || profile.kbps;
+  const targetFps = t.fps || profile.fps;
+  // Capture health: real output rate against the requested bitrate. A number
+  // far below 100% means the encoder cannot keep up → slow-motion on the TV.
+  const capture = Math.max(0, Math.min(100, Math.round((kbps / Math.max(1, targetKbps)) * 100)));
+  const bufferMs = t.bufferMs || t.segmentMs || 1000;
+  // Delay = what we replay to the TV + the TV-side chunk length.
+  const delayMs = Math.round(bufferMs + t.segmentMs / 2);
+  const delivery = Math.max(0, Math.min(100, Math.round(100 - (delayMs / 6000) * 100)));
+  return {
+    running: Boolean(state.proc),
+    viewers: state.clients.size,
+    kbps,
+    targetKbps,
+    targetFps,
+    capture,
+    delivery,
+    delayMs,
+    bufferMs,
+    tier: profile.tier,
+    hw: profile.hw || "",
+    tuning: t,
+  };
+}
+
 module.exports = {
   selfTest,
+  retune,
+  metrics,
 
   start,
   stop,
