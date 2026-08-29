@@ -13,7 +13,9 @@ function Ensure-Jdk {
   if(-not $java){$candidate=Get-ChildItem "$env:ProgramFiles\Eclipse Adoptium" -Directory -ErrorAction SilentlyContinue|Sort-Object Name -Descending|Select-Object -First 1;if($candidate){$env:JAVA_HOME=$candidate.FullName;$env:Path="$env:JAVA_HOME\bin;$env:Path";$java=Get-Command java -ErrorAction SilentlyContinue}}
   if(-not $java){throw 'JDK 21 could not be installed or located.'}
   if(-not $env:JAVA_HOME){$env:JAVA_HOME=(Split-Path (Split-Path $java.Source -Parent) -Parent)}
-  Write-Host "Java: $(& java -version 2>&1|Select-Object -First 1)"
+  $javaVersion='unknown'
+  try{$javaVersion=(& cmd.exe /d /c 'java -version 2>&1'|Select-Object -First 1)}catch{$javaVersion='unknown'}
+  Write-Host "Java: $javaVersion"
 }
 
 function Ensure-AndroidSdk {
